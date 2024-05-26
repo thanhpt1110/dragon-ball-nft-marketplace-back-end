@@ -13,6 +13,6 @@ app.use(function(req, res, next) {
 });    
 
 var routes = require('./routes/APIRoutes');
-routes(app); // register the route
+routes(app); 
 app.listen(port);
 console.log('API server started on: ' + port);
