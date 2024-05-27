@@ -1,4 +1,13 @@
+// Define the service to interact with the blockchain
 const { ethers } = require('ethers');
+// Set up Contract and Provider
+
+// Call blockchain functions here // 
+
+//// ================================ ////
+
+// Listener on blockchain events to update the database // 
+
 // Get balance from FTM 
 const provider = new ethers.JsonRpcProvider(process.env.FANTOM_TESTNET_RPC);
 async function getBalance(address) {
