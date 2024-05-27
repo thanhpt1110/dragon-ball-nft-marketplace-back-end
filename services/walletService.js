@@ -1,15 +1,10 @@
 // Define the service to interact with the blockchain
 const { ethers } = require('ethers');
 // Set up Contract and Provider
+const provider = new ethers.JsonRpcProvider(process.env.FANTOM_TESTNET_RPC);
 
 // Call blockchain functions here // 
-
-//// ================================ ////
-
-// Listener on blockchain events to update the database // 
-
 // Get balance from FTM 
-const provider = new ethers.JsonRpcProvider(process.env.FANTOM_TESTNET_RPC);
 async function getBalance(address) {
     try {
         const balance = await provider.getBalance(address);
@@ -21,14 +16,46 @@ async function getBalance(address) {
         throw error;
     }
 }
-module.exports = {
-    getBalance
-}
+
+
+//// ================================ ////
+
 
 // Query theo address từ Firestore
+const { db } = require('../firebaseConfig');
+async function getWallet(address) {
+    try {
+        const walletRef = db.collection('wallets').doc(address);
+        const wallet = await walletRef.get();
+        if (!wallet.exists) {
+            console.log('Không tìm thấy ví');
+            return null;
+        }
+        console.log('Tìm thấy ví:', wallet.data());
+        return wallet.data();
+    } catch (error) {
+        console.error('Lỗi khi lấy ví:', error);
+        throw error;
+    }
+}
 
+// Create or Update wallet in Firestore
+async function createOrUpdateWallet(address, wallet) {
+    try {
+        const walletRef = db.collection('wallets').doc(address);
+        await walletRef.set(wallet, { merge: true });
+        console.log('Đã cập nhật ví:', wallet);
+    } catch (error) {
+        console.error('Lỗi khi cập nhật ví:', error);
+        throw error;
+    }
+}
 // Encrypt private key
 
 // Decrypt private key
 
-// Get balance của wallet
+module.exports = {
+    getBalance,
+    getWallet,
+    createOrUpdateWallet,
+}

@@ -1,6 +1,5 @@
 const helper = require('./helper');
-const walletService = require('../services/walletService');
-const { db } = require('../firebaseConfig');
+const walletService = require('../services/WalletService');
 
 // Get wallet balance from Blockchain
 async function getBalance(req, res) {
