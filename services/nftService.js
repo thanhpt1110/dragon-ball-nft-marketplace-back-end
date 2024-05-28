@@ -1,9 +1,9 @@
 // Define the service to interact with the blockchain
 const { ethers } = require('ethers');
 const { getContractABI } = require('../utils/getContractABI');
+const { db } = require('../firebaseAdmin'); 
 const axios = require('axios');
 const ownerAddress = '0xcbB1be345A9a86Ce092F99c6fb2D874939Ee4c4b'
-const { db } = require('../firebaseAdmin'); 
 
 // Set up Contract and Provider
 const provider = new ethers.JsonRpcProvider(process.env.FANTOM_TESTNET_RPC);
@@ -21,6 +21,26 @@ const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wal
 
 
 // Call blockchain functions here // 
+async function getAllNftOnMarketplace() {
+    try {
+        const nfts = await getAllNftFromFirestore();
+        const promises = nfts.map(async nft => {
+            const tokenURL = await contractProvider.tokenURI(nft.tokenId);
+            const metadata = await axios.get(tokenURL);
+            return {
+                ...nft,
+                ...metadata.data,
+            };
+        });
+        const updatedNfts = await Promise.all(promises);
+        return updatedNfts;
+    }
+    catch (error) {
+        console.error(`Error getting all NFTs on marketplace: ${error}`);
+        throw error;
+    }
+}
+
 async function getNftMetadata(tokenId) {
     try {
         const tokenURL = await contractProvider.tokenURI(tokenId);
@@ -64,6 +84,24 @@ async function approveNftForMarketplace(){
 
 
 // Firebase Database functions //
+async function getAllNftFromFirestore() {
+    try {
+        const nftRef = db.collection('nfts');
+        const nftDocs = await nftRef.get();
+        if (nftDocs.empty) {
+            return [];
+        }
+        const nfts = [];
+        nftDocs.forEach(doc => {
+            nfts.push(doc.data());
+        });
+        return nfts;
+    } catch (error) {
+        console.error(`Error getting all NFTs from Firestore: ${error}`);
+        throw error;
+    }
+}
+
 async function getNftFromFirestore(tokenId) {
     try {
         const nftRef = db.collection('nfts').doc(tokenId.toString());
@@ -104,5 +142,6 @@ async function createOrUpdateNftMetadata(tokenId) {
 
 module.exports = {
     getNftMetadata,
-    approveNftForMarketplace
+    approveNftForMarketplace,
+    getAllNftOnMarketplace,
 };

@@ -1,6 +1,18 @@
 const helper = require('./helper');
 const nftService = require('../services/NftService');
 
+async function getAllNftOnMarketplace(req, res) {
+    try {
+        const nfts = await nftService.getAllNftOnMarketplace();
+        return res.status(200).json(helper.APIReturn(0, {
+            "nfts": nfts,
+        }, "Success!"));
+    } catch (error) {
+        console.log("Error: ", error);
+        return res.status(500).json(helper.APIReturn(101, "Something went wrong!"));
+    }
+}
+
 async function getNftMetadata(req, res) {
     try {
         const tokenId = req.params.nft_id;
@@ -27,4 +39,5 @@ async function approveNftForMarketplace(req, res) {
 module.exports = { 
     getNftMetadata, 
     approveNftForMarketplace,
+    getAllNftOnMarketplace,
 };

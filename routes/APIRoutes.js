@@ -15,6 +15,7 @@ module.exports = function(app) {
 
     // NFT API
     app.get('/api/nft/:nft_id', nftController.getNftMetadata);
+    app.get('/api/nft', nftController.getAllNftOnMarketplace);
     app.post('/api/nft/approveMarketplace', nftController.approveNftForMarketplace);
     // Marketplace API  
 };
