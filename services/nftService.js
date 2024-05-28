@@ -15,7 +15,7 @@ const privateKey = process.env.PRIVATE_KEY;
 const wallet = new ethers.Wallet(privateKey, provider);
 
 // Contract to read data from the blockchain
-const contract = new ethers.Contract(contractAddress, contractABI, provider);
+const contractProvider = new ethers.Contract(contractAddress, contractABI, provider);
 // Contract to write data to the blockchain
 const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
 
@@ -23,7 +23,7 @@ const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wal
 // Call blockchain functions here // 
 async function getNftMetadata(tokenId) {
     try {
-        const tokenURL = await contract.tokenURI(tokenId);
+        const tokenURL = await contractProvider.tokenURI(tokenId);
         const metadataResponse = await axios.get(tokenURL);
         const firestoreResponse = await getNftFromFirestore(tokenId);
 
@@ -34,6 +34,16 @@ async function getNftMetadata(tokenId) {
         return nft;
     } catch (error) {
         console.error(`Error getting token URI: ${error}`);
+        throw error;
+    }
+}
+
+async function approveNftForMarketplace(){
+    try {
+        console.log('Approving token for marketplace...');
+    }
+    catch (error) {
+        console.error(`Error approving token: ${error}`);
         throw error;
     }
 }
@@ -94,4 +104,5 @@ async function createOrUpdateNftMetadata(tokenId) {
 
 module.exports = {
     getNftMetadata,
+    approveNftForMarketplace
 };
