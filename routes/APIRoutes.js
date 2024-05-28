@@ -14,7 +14,7 @@ module.exports = function(app) {
     app.post('/api/wallet/:wallet_address', walletController.createOrUpdateWallet);
 
     // NFT API
-    app.get('/api/nft', nftController.getNftMetadata);
+    app.get('/api/nft/:nft_id', nftController.getNftMetadata);
        
     // Marketplace API  
 };

@@ -21,42 +21,53 @@ const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wal
 
 
 // Call blockchain functions here // 
-async function getNftMetadata() {
+async function getNftMetadata(tokenId) {
     try {
-        for (let i = 2; i <= 29; ++i) {
-            await mintNft(i);
-            await createOrUpdateNftMetadata(i);
-        }
-        return metadata.data;
+        const tokenURL = await contract.tokenURI(tokenId);
+        const metadataResponse = await axios.get(tokenURL);
+        const firestoreResponse = await getNftFromFirestore(tokenId);
+
+        const nft = {
+            ...metadataResponse.data,
+            ...firestoreResponse
+        };
+        return nft;
     } catch (error) {
         console.error(`Error getting token URI: ${error}`);
         throw error;
     }
 }
 
-async function mintNft(tokenId) {
-    try {
-        // Call the mint function on the contract
-        const tx = await contractWithSigner.mint(ownerAddress);
-
-        // Wait for the transaction to be mined
-        const receipt = await tx.wait();
-
-        console.log(`Transaction hash: ${receipt.transactionHash}`);
-
-        // Call createOrUpdateNftMetadata after minting
-        await createOrUpdateNftMetadata(tokenId);
-    } catch (error) {
-        console.error(`Error minting token: ${error}`);
-        throw error;
-    }
-}
+// async function mintNft(tokenId) {
+//     try {
+//         const tx = await contractWithSigner.mint(ownerAddress);
+//         const receipt = await tx.wait();
+//         await createOrUpdateNftMetadata(tokenId);
+//     } catch (error) {
+//         console.error(`Error minting token: ${error}`);
+//         throw error;
+//     }
+// }
 
 
 //// ================================ ////
 
 
 // Firebase Database functions //
+async function getNftFromFirestore(tokenId) {
+    try {
+        const nftRef = db.collection('nfts').doc(tokenId.toString());
+        const nftDoc = await nftRef.get();
+        if (!nftDoc.exists) {
+            return null;
+        }
+        return nftDoc.data();
+    } catch (error) {
+        console.error(`Error getting NFT from Firestore: ${error}`);
+        throw error;
+    }
+}
+
 async function createOrUpdateNftMetadata(tokenId) {
     try {   
         const nftRef = db.collection('nfts').doc(tokenId.toString());
