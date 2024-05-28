@@ -2,8 +2,8 @@
 module.exports = function(app) {
     var testController = require('../controllers/TestApiController');
     var walletController = require('../controllers/WalletController');
-    var dragonBallController = require('../controllers/NftController');
-    var dragonBallMarketplace = require('../controllers/MarketplaceController');
+    var nftController = require('../controllers/NftController');
+    var marketplaceController = require('../controllers/MarketplaceController');
 
     // Test API
     app.post('/api/test', testController.test);
@@ -14,6 +14,7 @@ module.exports = function(app) {
     app.post('/api/wallet/:wallet_address', walletController.createOrUpdateWallet);
 
     // NFT API
-
+    app.get('/api/nft', nftController.getNftMetadata);
+       
     // Marketplace API  
 };

@@ -22,5 +22,3 @@ contract.on("Transfer", async (from, to, amount) => {
 });
 
 
-
-
