@@ -9,13 +9,15 @@ module.exports = function(app) {
     app.post('/api/test', testController.test);
 
     // Wallet API
-    app.get('/api/balance/:wallet_address', walletController.getBalance);
+    app.get('/api/wallet/balance/:wallet_address', walletController.getBalance);
     app.get('/api/wallet/:wallet_address', walletController.getWallet);
     app.post('/api/wallet/:wallet_address', walletController.createOrUpdateWallet);
 
     // NFT API
-    app.get('/api/nft/:nft_id', nftController.getNftMetadata);
     app.get('/api/nft', nftController.getAllNftOnMarketplace);
+    app.get('/api/nft/topPrice', nftController.getTopPriceNft);
     app.post('/api/nft/approveMarketplace', nftController.approveNftForMarketplace);
+    app.get('/api/nft/:nft_id', nftController.getNftMetadata);
+    
     // Marketplace API  
 };

@@ -21,6 +21,31 @@ const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wal
 
 
 // Call blockchain functions here // 
+async function getTopPriceNft() {
+    try {
+        const topPriceNftSnapshot = await db.collection('nfts')
+            .orderBy('price', 'desc')
+            .limit(1)
+            .get();
+        if (topPriceNftSnapshot.empty) {
+            return null;
+        }
+        const topPriceNft = topPriceNftSnapshot.docs[0].data();
+        // Fetch the metadata from the token URL
+        const tokenURL = await contractProvider.tokenURI(topPriceNft.tokenId);
+        const metadataResponse = await axios.get(tokenURL);
+
+        const mergedData = {
+            ...topPriceNft,
+            ...metadataResponse.data
+        };
+        return mergedData;
+    } catch (error) {
+        console.error(`Error getting all NFTs on marketplace: ${error}`);
+        throw error;
+    }
+}
+
 async function getAllNftOnMarketplace() {
     try {
         const nfts = await getAllNftFromFirestore();
@@ -95,6 +120,7 @@ async function getAllNftFromFirestore() {
         nftDocs.forEach(doc => {
             nfts.push(doc.data());
         });
+        nfts.sort((a, b) => a.tokenId - b.tokenId); 
         return nfts;
     } catch (error) {
         console.error(`Error getting all NFTs from Firestore: ${error}`);
@@ -141,6 +167,7 @@ async function createOrUpdateNftMetadata(tokenId) {
 // Listener on blockchain events to update the database // 
 
 module.exports = {
+    getTopPriceNft,
     getNftMetadata,
     approveNftForMarketplace,
     getAllNftOnMarketplace,
