@@ -9,7 +9,6 @@ async function getBalance(address) {
     try {
         const balance = await provider.getBalance(address);
         const balanceInEther = ethers.formatEther(balance);
-        console.log(`Số dư của địa chỉ ${address} là: ${balanceInEther} FTM`);
         return balanceInEther;
     } catch (error) {
         console.error('Lỗi khi lấy số dư:', error);

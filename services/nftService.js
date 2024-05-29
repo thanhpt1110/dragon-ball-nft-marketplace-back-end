@@ -21,6 +21,63 @@ const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wal
 
 
 // Call blockchain functions here // 
+async function getOwnedNftsByAddress(ownerAddress) {
+    try {
+        const nfts = await getOwnedNftsFromFirestore(ownerAddress);
+        const promises = nfts.map(async nft => {
+            const tokenURL = await contractProvider.tokenURI(nft.tokenId);
+            const metadata = await axios.get(tokenURL);
+            return {
+                ...nft,
+                ...metadata.data,
+            };
+        });
+        const updatedNfts = await Promise.all(promises);
+        return updatedNfts;
+    } catch (error) {
+        console.error(`Error getting owned NFTs: ${error}`);
+        throw error;
+    }
+}
+
+async function getOwnedNftsSellingByAddress(ownerAddress) {
+    try {
+        const nfts = await getOwnedSellingNftsFromFirestore(ownerAddress);
+        const promises = nfts.map(async nft => {
+            const tokenURL = await contractProvider.tokenURI(nft.tokenId);
+            const metadata = await axios.get(tokenURL);
+            return {
+                ...nft,
+                ...metadata.data,
+            };
+        });
+        const updatedNfts = await Promise.all(promises);
+        return updatedNfts;
+    } catch (error) {
+        console.error(`Error getting owned NFTs: ${error}`);
+        throw error;
+    }
+}
+
+async function getOwnedNftsAuctionByAddress(ownerAddress) {
+    try {
+        const nfts = await getOwnedAuctionNftsFromFirestore(ownerAddress);
+        const promises = nfts.map(async nft => {
+            const tokenURL = await contractProvider.tokenURI(nft.tokenId);
+            const metadata = await axios.get(tokenURL);
+            return {
+                ...nft,
+                ...metadata.data,
+            };
+        });
+        const updatedNfts = await Promise.all(promises);
+        return updatedNfts;
+    } catch (error) {
+        console.error(`Error getting owned NFTs: ${error}`);
+        throw error;
+    }
+}
+
 async function getTopPriceNft() {
     try {
         const topPriceNftSnapshot = await db.collection('nfts')
@@ -46,9 +103,9 @@ async function getTopPriceNft() {
     }
 }
 
-async function getAllNftOnMarketplace() {
+async function getAllNftsOnMarketplace() {
     try {
-        const nfts = await getAllNftFromFirestore();
+        const nfts = await getAllNftsFromFirestore();
         const promises = nfts.map(async nft => {
             const tokenURL = await contractProvider.tokenURI(nft.tokenId);
             const metadata = await axios.get(tokenURL);
@@ -109,9 +166,76 @@ async function approveNftForMarketplace(){
 
 
 // Firebase Database functions //
-async function getAllNftFromFirestore() {
+async function getOwnedNftsFromFirestore(ownerAddress) {
     try {
-        const nftRef = db.collection('nfts');
+        const nftRef = db.collection('nfts')
+            .where('author', '==', ownerAddress)
+            .where('isSold', '==', false)
+            .where('isAuction', '==', false);
+        const nftDocs = await nftRef.get();
+        if (nftDocs.empty) {
+            return [];
+        }
+        const nfts = [];
+        nftDocs.forEach(doc => {
+            nfts.push(doc.data());
+        });
+        nfts.sort((a, b) => a.tokenId - b.tokenId);
+        return nfts;
+    } catch (error) {
+        console.error(`Error getting owned NFTs from Firestore: ${error}`);
+        throw error;
+    }
+}
+
+async function getOwnedSellingNftsFromFirestore(ownerAddress) { 
+    try {
+        const nftRef = db.collection('nfts')
+            .where('author', '==', ownerAddress)
+            .where('isSold', '==', true)
+            .where('isAuction', '==', false);
+        const nftDocs = await nftRef.get();
+        if (nftDocs.empty) {
+            return [];
+        }
+        const nfts = [];
+        nftDocs.forEach(doc => {
+            nfts.push(doc.data());
+        });
+        nfts.sort((a, b) => a.tokenId - b.tokenId);
+        return nfts;
+    } catch (error) {
+        console.error(`Error getting owned selling NFTs from Firestore: ${error}`);
+        throw error;
+    }
+}
+
+async function getOwnedAuctionNftsFromFirestore(ownerAddress) {
+    try {
+        const nftRef = db.collection('nfts')
+            .where('author', '==', ownerAddress)
+            .where('isSold', '==', false)
+            .where('isAuction', '==', true);
+        const nftDocs = await nftRef.get();
+        if (nftDocs.empty) {
+            return [];
+        }
+        const nfts = [];
+        nftDocs.forEach(doc => {
+            nfts.push(doc.data());
+        });
+        nfts.sort((a, b) => a.tokenId - b.tokenId);
+        return nfts;
+    } catch (error) {
+        console.error(`Error getting owned auction NFTs from Firestore: ${error}`);
+        throw error;
+    }
+}
+
+async function getAllNftsFromFirestore() {
+    try {
+        const nftRef = db.collection('nfts')
+            .where('isAuction', '==', false);
         const nftDocs = await nftRef.get();
         if (nftDocs.empty) {
             return [];
@@ -161,7 +285,6 @@ async function createOrUpdateNftMetadata(tokenId) {
     }
 }
 
-
 //// ================================ ////
 
 // Listener on blockchain events to update the database // 
@@ -170,5 +293,8 @@ module.exports = {
     getTopPriceNft,
     getNftMetadata,
     approveNftForMarketplace,
-    getAllNftOnMarketplace,
+    getAllNftsOnMarketplace,
+    getOwnedNftsByAddress,
+    getOwnedNftsSellingByAddress,
+    getOwnedNftsAuctionByAddress,
 };

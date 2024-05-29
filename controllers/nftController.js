@@ -16,9 +16,48 @@ async function getTopPriceNft(req, res) {
     }
 }
 
-async function getAllNftOnMarketplace(req, res) {
+async function getAllNftsOnMarketplace(req, res) {
     try {
-        const nfts = await nftService.getAllNftOnMarketplace();
+        const nfts = await nftService.getAllNftsOnMarketplace();
+        return res.status(200).json(helper.APIReturn(0, {
+            "nfts": nfts,
+        }, "Success!"));
+    } catch (error) {
+        console.log("Error: ", error);
+        return res.status(500).json(helper.APIReturn(101, "Something went wrong!"));
+    }
+}
+
+async function getOwnedNftsByAddress(req, res) {
+    try {
+        const walletAddress = req.params.wallet_address;
+        const nfts = await nftService.getOwnedNftsByAddress(walletAddress);
+        return res.status(200).json(helper.APIReturn(0, {
+            "nfts": nfts,
+        }, "Success!"));
+    } catch (error) {
+        console.log("Error: ", error);
+        return res.status(500).json(helper.APIReturn(101, "Something went wrong!"));
+    }
+}
+
+async function getOwnedNftsSellingByAddress(req, res) {
+    try {
+        const walletAddress = req.params.wallet_address;
+        const nfts = await nftService.getOwnedNftsSellingByAddress(walletAddress);
+        return res.status(200).json(helper.APIReturn(0, {
+            "nfts": nfts,
+        }, "Success!"));
+    } catch (error) {
+        console.log("Error: ", error);
+        return res.status(500).json(helper.APIReturn(101, "Something went wrong!"));
+    }
+}
+
+async function getOwnedNftsAuctionByAddress(req, res) {
+    try {
+        const walletAddress = req.params.wallet_address;
+        const nfts = await nftService.getOwnedNftsAuctionByAddress(walletAddress);
         return res.status(200).json(helper.APIReturn(0, {
             "nfts": nfts,
         }, "Success!"));
@@ -55,5 +94,8 @@ module.exports = {
     getTopPriceNft,
     getNftMetadata,
     approveNftForMarketplace,
-    getAllNftOnMarketplace,
+    getAllNftsOnMarketplace,
+    getOwnedNftsByAddress,
+    getOwnedNftsSellingByAddress,
+    getOwnedNftsAuctionByAddress,
 };
