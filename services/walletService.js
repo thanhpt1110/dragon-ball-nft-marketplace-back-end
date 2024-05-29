@@ -1,5 +1,6 @@
 // Define the service to interact with the blockchain
 const { ethers } = require('ethers');
+const { db } = require('../firebaseAdmin'); 
 // Set up Contract and Provider
 const provider = new ethers.JsonRpcProvider(process.env.FANTOM_TESTNET_RPC);
 
@@ -21,17 +22,15 @@ async function getBalance(address) {
 
 
 // Query theo address từ Firestore
-const { db } = require('../firebaseConfig');
 async function getWallet(address) {
     try {
         const walletRef = db.collection('wallets').doc(address);
-        const wallet = await walletRef.get();
-        if (!wallet.exists) {
+        const walletDoc = await walletRef.get();
+        if (!walletDoc.exists) {
             console.log('Không tìm thấy ví');
             return null;
         }
-        console.log('Tìm thấy ví:', wallet.data());
-        return wallet.data();
+        return walletDoc.data();
     } catch (error) {
         console.error('Lỗi khi lấy ví:', error);
         throw error;

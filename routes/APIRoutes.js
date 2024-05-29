@@ -13,6 +13,7 @@ module.exports = function(app) {
     app.get('/api/wallet/:wallet_address', walletController.getWallet);
     app.post('/api/wallet/:wallet_address', walletController.createOrUpdateWallet);
 
+
     // NFT API
     app.get('/api/nft', nftController.getAllNftsOnMarketplace);
     app.get('/api/nft/topPrice', nftController.getTopPriceNft);
@@ -20,11 +21,15 @@ module.exports = function(app) {
     app.get('/api/nft/owned/auction/:wallet_address', nftController.getOwnedNftsAuctionByAddress);
     app.get('/api/nft/owned/:wallet_address', nftController.getOwnedNftsByAddress);
     app.get('/api/nft/:nft_id', nftController.getNftMetadata);
-    
-    
-    
-    
+
     app.post('/api/nft/approveMarketplace', nftController.approveNftForMarketplace);
     
+
     // Marketplace API  
+    app.post('/api/marketplace/listNft', marketplaceController.listNft);
+    app.post('/api/marketplace/unListNft', marketplaceController.unListNft);
+    app.post('/api/marketplace/updateListingNftPrice', marketplaceController.updateListingNftPrice);
+    app.post('/api/marketplace/buyNft', marketplaceController.buyNft);
+
+    // Auction API
 };
