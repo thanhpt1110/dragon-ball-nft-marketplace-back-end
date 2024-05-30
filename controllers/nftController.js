@@ -18,6 +18,7 @@ async function getTopPriceNft(req, res) {
 
 async function getAllNftsOnMarketplace(req, res) {
     try {
+        // await nftService.approveNftForMarketplace();
         const nfts = await nftService.getAllNftsOnMarketplace();
         return res.status(200).json(helper.APIReturn(0, {
             "nfts": nfts,

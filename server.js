@@ -22,10 +22,10 @@ var routes = require('./routes/APIRoutes');
 routes(app); 
 
 // Start listening to blockchain events
-// startListeningToListNFTEvent();
+startListeningToListNFTEvent();
 // startListeningToUnListNFTEvent();
 // startListeningToUpdateListingNFTPriceEvent();
-// startListeningToBuyNFTEvent();
+startListeningToBuyNFTEvent();
 
 app.listen(port);
 console.log('API server started on: ' + port);

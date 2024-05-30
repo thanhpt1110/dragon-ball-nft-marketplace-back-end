@@ -21,6 +21,18 @@ const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wal
 
 
 // Call blockchain functions here // 
+async function setApprovalForAll(operator, approved, wallet) {
+    try {
+        const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
+        const tx = await contractWithSigner.setApprovalForAll(operator, approved);
+        await tx.wait();
+        console.log(`Approval for all set successfully: ${operator} ${approved}`)
+    } catch (error) {
+        console.error(`Error setting approval for all: ${error}`);
+        throw error;
+    }
+}
+
 async function getOwnedNftsByAddress(ownerAddress) {
     try {
         const nfts = await getOwnedNftsFromFirestore(ownerAddress);
@@ -143,10 +155,7 @@ async function getNftMetadata(tokenId) {
 async function approveNftForMarketplace(){
     try {
         try {
-            for (let i = 4; i <= 30; ++i) {
-                const mintTx = await contractWithSigner.mint(ownerAddress);
-                await mintTx.wait();
-                console.log(`Minted token ${i}`);
+            for (let i = 1; i <= 30; ++i) {
                 const approveTx = await contractWithSigner.approve(process.env.CONTRACT_DRAGON_BALL_MARKETPLACE_ADDRESS, i);
                 await approveTx.wait();
                 console.log(`Approved token ${i}`);
@@ -302,6 +311,7 @@ async function createOrUpdateNftMetadata(tokenId) {
 // Listener on blockchain events to update the database // 
 
 module.exports = {
+    setApprovalForAll,
     getTopPriceNft,
     getNftMetadata,
     approveNftForMarketplace,
@@ -309,4 +319,5 @@ module.exports = {
     getOwnedNftsByAddress,
     getOwnedNftsSellingByAddress,
     getOwnedNftsAuctionByAddress,
+    getNftFromFirestore,
 };

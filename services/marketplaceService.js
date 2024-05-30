@@ -25,7 +25,8 @@ async function listNft(sender, tokenId, price) {
             const privateKey = walletFirestore.privateKey;
             const wallet = new ethers.Wallet(privateKey, provider);
             const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
-            const tx = await contractWithSigner.listNft(tokenId, price);
+            const ethPrice = ethers.parseEther(price.toString());
+            const tx = await contractWithSigner.listNft(tokenId, ethPrice);
             await tx.wait();
             console.log('Đã list NFT:', tokenId);
         } catch (error) {
@@ -59,7 +60,8 @@ async function updateListingNftPrice(sender, tokenId, price) {
             const privateKey = walletFirestore.privateKey;
             const wallet = new ethers.Wallet(privateKey, provider);
             const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
-            const tx = await contractWithSigner.updateListingNftPrice(tokenId, price);
+            const ethPrice = ethers.parseEther(price.toString());
+            const tx = await contractWithSigner.updateListingNftPrice(tokenId, ethPrice);
             await tx.wait();
             console.log('Đã cập nhật giá NFT:', tokenId);
         } catch (error) {
@@ -69,6 +71,7 @@ async function updateListingNftPrice(sender, tokenId, price) {
     });
 }
 
+const nftService  = require('./NftService'); 
 async function buyNft(sender, tokenId) {
     await queue.add(async () => {
         try {
@@ -76,9 +79,18 @@ async function buyNft(sender, tokenId) {
             const privateKey = walletFirestore.privateKey;
             const wallet = new ethers.Wallet(privateKey, provider);
             const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
-            const tx = await contractWithSigner.buyNft(tokenId);
+
+            const nft = await nftService.getNftFromFirestore(tokenId);
+            const priceInWei = ethers.parseUnits(nft.price.toString(), 'wei');
+            const options = { value: priceInWei };
+
+            const tx = await contractWithSigner.buyNft(tokenId, options);
             await tx.wait();
+            
             console.log('Đã mua NFT:', tokenId);
+            // Update approve all NFTs for Marketplace
+            await nftService.setApprovalForAll(contractAddress, true, wallet);  
+
         } catch (error) {
             console.error('Lỗi khi mua NFT:', error);
             throw error;
@@ -90,7 +102,11 @@ async function buyNft(sender, tokenId) {
 
 // Listener on blockchain events to update the database
 const startListeningToListNFTEvent = () => {
-    contractProvider.on("ListNFT", async (sender, tokenId, price) => {
+    if (contractProvider.listenerCount("ListNFT") > 0) {
+        // There is already a listener for the "ListNFT" event
+        return;
+    }
+    contractProvider.addListener("ListNFT", async (sender, tokenId, price) => {
         await queue.add(async () => {
             try {
                 console.log(`NFT with ID ${tokenId} listed with price ${price} by ${sender}`);
@@ -118,7 +134,11 @@ const startListeningToListNFTEvent = () => {
 }
 
 const startListeningToUnListNFTEvent = () => {
-    contractProvider.on("UnListNFT", async (sender, tokenId) => {
+    if (contractProvider.listenerCount("UnListNFT") > 0) {
+        // There is already a listener for the "UnListNFT" event
+        return;
+    }
+    contractProvider.addListener("UnListNFT", async (sender, tokenId) => {
         await queue.add(async () => {
             try {
                 console.log(`NFT with ID ${tokenId} unlisted by ${sender}`);
@@ -146,7 +166,11 @@ const startListeningToUnListNFTEvent = () => {
 }
 
 const startListeningToUpdateListingNFTPriceEvent = () => {
-    contractProvider.on("UpdateListingNFTPrice", async (sender, tokenId, price) => {
+    if (contractProvider.listenerCount("UpdateListingNFTPrice") > 0) {
+        // There is already a listener for the "UpdateListingNFTPrice" event
+        return;
+    }
+    contractProvider.addListener("UpdateListingNFTPrice", async (sender, tokenId, price) => {
         await queue.add(async () => {
             try {
                 console.log(`NFT with ID ${tokenId} updated price to ${price} by ${sender}`)
@@ -174,7 +198,11 @@ const startListeningToUpdateListingNFTPriceEvent = () => {
 }
 
 const startListeningToBuyNFTEvent = () => {
-    contractProvider.on("BuyNFT", async (sender, oldAuthor, tokenId, price) => {
+    if (contractProvider.listenerCount("BuyNFT") > 0) {
+        // There is already a listener for the "UnListNFT" event
+        return;
+    }
+    contractProvider.addListener("BuyNFT", async (sender, oldAuthor, tokenId, price) => {
         await queue.add(async () => {
             try {
                 console.log(`NFT with ID ${tokenId} bought by ${sender} from ${oldAuthor} with price ${price}`)
