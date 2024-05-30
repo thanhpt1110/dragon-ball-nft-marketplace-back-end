@@ -142,7 +142,20 @@ async function getNftMetadata(tokenId) {
 
 async function approveNftForMarketplace(){
     try {
-        console.log('Approving token for marketplace...');
+        try {
+            for (let i = 4; i <= 30; ++i) {
+                const mintTx = await contractWithSigner.mint(ownerAddress);
+                await mintTx.wait();
+                console.log(`Minted token ${i}`);
+                const approveTx = await contractWithSigner.approve(process.env.CONTRACT_DRAGON_BALL_MARKETPLACE_ADDRESS, i);
+                await approveTx.wait();
+                console.log(`Approved token ${i}`);
+            }
+        }
+        catch (error) {
+            console.error(`Error approving token: ${error}`);
+            throw error;
+        }
     }
     catch (error) {
         console.error(`Error approving token: ${error}`);
@@ -150,17 +163,16 @@ async function approveNftForMarketplace(){
     }
 }
 
-// async function mintNft(tokenId) {
-//     try {
-//         const tx = await contractWithSigner.mint(ownerAddress);
-//         const receipt = await tx.wait();
-//         await createOrUpdateNftMetadata(tokenId);
-//     } catch (error) {
-//         console.error(`Error minting token: ${error}`);
-//         throw error;
-//     }
-// }
-
+async function mintNft(tokenId) {
+    try {
+        const tx = await contractWithSigner.mint(ownerAddress);
+        const receipt = await tx.wait();
+        await createOrUpdateNftMetadata(tokenId);
+    } catch (error) {
+        console.error(`Error minting token: ${error}`);
+        throw error;
+    }
+}
 
 //// ================================ ////
 

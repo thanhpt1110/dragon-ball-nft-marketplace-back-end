@@ -2,6 +2,8 @@ require('dotenv').config();
 const { 
     startListeningToListNFTEvent,
     startListeningToUnListNFTEvent,
+    startListeningToUpdateListingNFTPriceEvent,
+    startListeningToBuyNFTEvent,
 } = require('./services/MarketplaceService');
 
 const express = require('express'),
@@ -20,8 +22,10 @@ var routes = require('./routes/APIRoutes');
 routes(app); 
 
 // Start listening to blockchain events
-startListeningToListNFTEvent();
-startListeningToUnListNFTEvent();
+// startListeningToListNFTEvent();
+// startListeningToUnListNFTEvent();
+// startListeningToUpdateListingNFTPriceEvent();
+// startListeningToBuyNFTEvent();
 
 app.listen(port);
 console.log('API server started on: ' + port);

@@ -25,8 +25,8 @@ async function unListNft(req, res) {
 
 async function updateListingNftPrice(req, res) {
     try {
-        const nft = req.body;
-        // await marketplaceService.updateListingNftPrice(nft);
+        const { address, tokenId, price } = req.body;
+        await marketplaceService.updateListingNftPrice(address, tokenId, price);
         return res.status(200).json(helper.APIReturn(0, "Success!"));
     } catch (error) {
         console.log("Error: ", error);
@@ -36,8 +36,8 @@ async function updateListingNftPrice(req, res) {
 
 async function buyNft(req, res) {
     try {
-        const nft = req.body;
-        // await marketplaceService.buyNft(nft);
+        const { address, tokenId } = req.body;
+        await marketplaceService.buyNft(address, tokenId);
         return res.status(200).json(helper.APIReturn(0, "Success!"));
     } catch (error) {
         console.log("Error: ", error);
