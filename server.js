@@ -23,9 +23,9 @@ routes(app);
 
 // Start listening to blockchain events
 startListeningToListNFTEvent();
-// startListeningToUnListNFTEvent();
+startListeningToUnListNFTEvent();
 // startListeningToUpdateListingNFTPriceEvent();
-startListeningToBuyNFTEvent();
+// startListeningToBuyNFTEvent();
 
 app.listen(port);
 console.log('API server started on: ' + port);
