@@ -101,19 +101,60 @@ async function finishAuction(sender, auctionId) {
 
 // Listener on blockchain events to update the database
 const startListeningToCreateAuctionEvent = () => {
-
+    contractProvider.on('CreateAuction', async (tokenId, auctionId, price, startTime, endTime) => {
+        const auction = {
+            tokenId: tokenId.toNumber(),
+            auctionId: auctionId.toNumber(),
+            price: ethers.utils.formatEther(price),
+            startTime: startTime.toNumber(),
+            endTime: endTime.toNumber(),
+            status: 'created',
+            highestBidder: '',
+            highestBid: 0,
+            winner: '',
+        }
+        console.log('CreateAuction Event:', auction);
+        await db.collection('auctions').doc(auctionId.toNumber().toString()).set(auction);
+    });
 }
 
 const startListeningToJoinAuctionEvent = () => {
-    
+    contractProvider.on('JoinAuction', async (auctionId, bidder, price) => {
+        const auctionRef = db.collection('auctions').doc(auctionId.toNumber().toString());
+        const auction = await auctionRef.get();
+        const auctionData = auction.data();
+        const highestBid = auctionData.highestBid;
+        const highestBidder = auctionData.highestBidder;
+
+        if (price > highestBid) {
+            await auctionRef.update({
+                highestBid: price,
+                highestBidder: bidder,
+            });
+        }
+        console.log('JoinAuction Event:', auctionId.toNumber(), bidder, price);
+    });
 }
 
 const startListeningToCancelAuctionEvent = () => {
-    
+    contractProvider.on('CancelAuction', async (auctionId) => {
+        const auctionRef = db.collection('auctions').doc(auctionId.toNumber().toString());
+        await auctionRef.update({
+            status: 'cancelled',
+        });
+        console.log('CancelAuction Event:', auctionId.toNumber());
+    });
 }
 
 const startListeningToFinishAuctionEvent = () => {
-    
+    contractProvider.on('FinishAuction', async (auctionId, winner) => {
+        const auctionRef = db.collection('auctions').doc(auctionId.toNumber().toString());
+        await auctionRef.update({
+            status: 'finished',
+            winner: winner,
+        });
+        console.log('FinishAuction Event:', auctionId.toNumber(), winner);
+    });
 }
 
 module.exports = {
