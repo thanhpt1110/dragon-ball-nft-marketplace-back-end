@@ -67,7 +67,7 @@ async function cancelAuction(sender, auctionId) {
             const wallet = new ethers.Wallet(privateKey, provider);
             const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
             
-            const tx = await contractWithSigner.createAuction(sender, auctionId, ethPrice);
+            const tx = await contractWithSigner.cancelAuction(auctionId);
             await tx.wait();
 
             console.log('Đã hủy Auction:', auctionId);
@@ -78,8 +78,23 @@ async function cancelAuction(sender, auctionId) {
     });
 }
 
-async function finishAuction(sender, tokenId) {
+async function finishAuction(sender, auctionId) {
+    await queue.add(async () => {
+        try {
+            const walletFirestore = await getWallet(sender);
+            const privateKey = walletFirestore.privateKey;
+            const wallet = new ethers.Wallet(privateKey, provider);
+            const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
+            
+            const tx = await contractWithSigner.finishAuction(auctionId);
+            await tx.wait();
 
+            console.log('Đã kết thúc Auction:', auctionId);
+        } catch (error) {
+            console.log("Lỗi khi kết thúc Auction: ", error);
+            throw error;
+        }
+    });
 }
 
 //// ================================ ////
