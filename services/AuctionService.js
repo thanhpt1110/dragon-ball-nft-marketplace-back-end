@@ -38,8 +38,24 @@ async function createAuction(sender, tokenId, initialPrice, startTime, endTime) 
     });
 }   
 
-async function joinAuction(sender, tokenId) {
+async function joinAuction(sender, auctionId, bidPrice) {
+    await queue.add(async () => {
+        try {
+            const walletFirestore = await getWallet(sender);
+            const privateKey = walletFirestore.privateKey;
+            const wallet = new ethers.Wallet(privateKey, provider);
+            const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
+            
+            const ethPrice = ethers.parseEther(bidPrice.toString());
+            const tx = await contractWithSigner.createAuction(sender, auctionId, ethPrice);
+            await tx.wait();
 
+            console.log('Đã tham gia vào Auction:', auctionId);
+        } catch (error) {
+            console.log("Lỗi khi tham gia Auction: ", error);
+            throw error;
+        }
+    });
 }
 
 async function cancelAuction(sender, tokenId, price) {
