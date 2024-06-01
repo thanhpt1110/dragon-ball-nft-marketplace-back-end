@@ -82,8 +82,7 @@ async function buyNft(sender, tokenId) {
 
             const nft = await nftService.getNftFromFirestore(tokenId);
             const priceInWei = ethers.parseUnits(nft.price.toString(), 'wei');
-            const options = { value: priceInWei };
-
+            const options = { value: priceInWei }; 
             const tx = await contractWithSigner.buyNft(tokenId, options);
             await tx.wait();
             
