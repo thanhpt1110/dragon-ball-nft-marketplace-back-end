@@ -19,9 +19,24 @@ const queue = new PQueue({ concurrency: 1 });
 // const wallet = new ethers.Wallet(privateKey, provider);
 // const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
 
-async function createAuction(sender, tokenId, price) {
-
-}
+async function createAuction(sender, tokenId, initialPrice, startTime, endTime) {
+    await queue.add(async () => {
+        try {
+            const walletFirestore = await getWallet(sender);
+            const privateKey = walletFirestore.privateKey;
+            const wallet = new ethers.Wallet(privateKey, provider);
+            const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
+            
+            const ethPrice = ethers.parseEther(initialPrice.toString());
+            const tx = await contractWithSigner.createAuction(tokenId, ethPrice, startTime, endTime);
+            await tx.wait();
+            console.log('Đã tạo auction với Token:', tokenId);
+        } catch (error) {
+            console.log("Lỗi khi tạo Auction: ", error);
+            throw error;
+        }
+    });
+}   
 
 async function joinAuction(sender, tokenId) {
 

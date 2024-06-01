@@ -22,8 +22,8 @@ var routes = require('./routes/APIRoutes');
 routes(app); 
 
 // Start listening to blockchain events
-startListeningToListNFTEvent();
-startListeningToUnListNFTEvent();
+// startListeningToListNFTEvent();
+// startListeningToUnListNFTEvent();
 // startListeningToUpdateListingNFTPriceEvent();
 // startListeningToBuyNFTEvent();
 
