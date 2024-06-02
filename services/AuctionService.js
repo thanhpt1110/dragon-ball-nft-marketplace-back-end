@@ -27,7 +27,9 @@ async function createAuction(sender, tokenId, initialPrice, startTime, endTime) 
             const wallet = new ethers.Wallet(privateKey, provider);
             const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
             
+            // Convert initialPrice to Wei: 1 Ether = 10^18 Wei
             const priceInWei = ethers.parseEther(initialPrice.toString());
+
             const tx = await contractWithSigner.createAuction(tokenId, priceInWei, startTime, endTime);
             await tx.wait();
             console.log('Đã tạo auction với Token:', tokenId);
@@ -101,59 +103,66 @@ async function finishAuction(sender, auctionId) {
 
 // Listener on blockchain events to update the database
 const startListeningToCreateAuctionEvent = () => {
-    contractProvider.on('CreateAuction', async (tokenId, auctionId, price, startTime, endTime) => {
-        const auction = {
-            tokenId: tokenId.toNumber(),
-            auctionId: auctionId.toNumber(),
-            price: ethers.utils.formatEther(price),
-            startTime: startTime.toNumber(),
-            endTime: endTime.toNumber(),
-            status: 'created',
-            highestBidder: '',
-            highestBid: 0,
-            winner: '',
+    contractProvider.on('CreateAuction', async (sender, auctionId, tokenId, initialPrice, startTime, endTime) => {
+        try {
+            console.log('CreateAuction event:', sender, auctionId, tokenId, initialPrice, startTime, endTime);
+            
+            // Create a new auction in Firestore
+            const auctionRef = db.collection('auctions').doc(auctionId.toString());
+            const auctionPromise = auctionRef.set({
+                auctioneer: sender,
+                tokenId: tokenId,
+                initialPrice: initialPrice,
+                previousBidder: '',
+                lastBid: initialPrice,
+                lastBidder: '',
+                startTime: startTime,
+                endTime: endTime,
+                completed: false,
+                active: true,
+                auctionId: auctionId,
+            });
+
+            // Update Wallet in Firestore
+            const newSenderBalance = await getBalance(sender);
+            const senderWalletRef = db.collection('wallets').doc(sender);
+            const senderWalletPromise = senderWalletRef.update({ 
+                balance: newSenderBalance 
+            }, {merge: true});
+
+            // Wait for all updates to complete
+            await Promise.all([
+                auctionPromise, 
+                senderWalletPromise
+            ]);
+        } catch (error) {
+            console.log("Lỗi khi tạo Auction: ", error);
+            throw error;
         }
-        console.log('CreateAuction Event:', auction);
-        await db.collection('auctions').doc(auctionId.toNumber().toString()).set(auction);
     });
 }
 
 const startListeningToJoinAuctionEvent = () => {
-    contractProvider.on('JoinAuction', async (auctionId, bidder, price) => {
-        const auctionRef = db.collection('auctions').doc(auctionId.toNumber().toString());
-        const auction = await auctionRef.get();
-        const auctionData = auction.data();
-        const highestBid = auctionData.highestBid;
-        const highestBidder = auctionData.highestBidder;
-
-        if (price > highestBid) {
-            await auctionRef.update({
-                highestBid: price,
-                highestBidder: bidder,
-            });
-        }
-        console.log('JoinAuction Event:', auctionId.toNumber(), bidder, price);
+    contractProvider.on('JoinAuction', async (sender, auctionId, bidPrice, previousBidder) => {
+        // Sender is the new bidder
     });
 }
 
 const startListeningToCancelAuctionEvent = () => {
-    contractProvider.on('CancelAuction', async (auctionId) => {
-        const auctionRef = db.collection('auctions').doc(auctionId.toNumber().toString());
-        await auctionRef.update({
-            status: 'cancelled',
-        });
-        console.log('CancelAuction Event:', auctionId.toNumber());
+    contractProvider.on('CancelAuction', async (sender, auctionId, tokenId, auctioneer, previousBidder) => {
+        // Sender is the auctioneer
     });
 }
 
 const startListeningToFinishAuctionEvent = () => {
-    contractProvider.on('FinishAuction', async (auctionId, winner) => {
-        const auctionRef = db.collection('auctions').doc(auctionId.toNumber().toString());
-        await auctionRef.update({
-            status: 'finished',
-            winner: winner,
-        });
-        console.log('FinishAuction Event:', auctionId.toNumber(), winner);
+    contractProvider.on('FinishAuction', async (sender, auctionId, tokenId, bidPrice, auctioneer, lastBidder) => {
+        // Sender is who called the function
+        
+        // Update the auction status to 'finished'
+        
+        // Auctioneer is the owner of the NFT
+        
+        // LastBidder is the winner
     });
 }
 

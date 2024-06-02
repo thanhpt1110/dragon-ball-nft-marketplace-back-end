@@ -6,6 +6,13 @@ const {
     startListeningToBuyNFTEvent,
 } = require('./services/MarketplaceService');
 
+const {
+    startListeningToCreateAuctionEvent,
+    startListeningToJoinAuctionEvent,
+    startListeningToCancelAuctionEvent,
+    startListeningToFinishAuctionEvent,
+} = require('./services/AuctionService');
+
 const express = require('express'),
     app = express(),
     port = process.env.PORT || 3000,
@@ -21,11 +28,18 @@ app.use(function(req, res, next) {
 var routes = require('./routes/APIRoutes');
 routes(app); 
 
-// Start listening to blockchain events
+// Start listening to blockchain events // 
+// Marketplace // 
 // startListeningToListNFTEvent();
 // startListeningToUnListNFTEvent();
 // startListeningToUpdateListingNFTPriceEvent();
 // startListeningToBuyNFTEvent();
+
+// Auction
+// startListeningToCreateAuctionEvent();
+// startListeningToJoinAuctionEvent();
+// startListeningToCancelAuctionEvent();
+// startListeningToFinishAuctionEvent();
 
 app.listen(port);
 console.log('API server started on: ' + port);
