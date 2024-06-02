@@ -144,13 +144,79 @@ const startListeningToCreateAuctionEvent = () => {
 
 const startListeningToJoinAuctionEvent = () => {
     contractProvider.on('JoinAuction', async (sender, auctionId, bidPrice, previousBidder) => {
-        // Sender is the new bidder
+        try {
+            // Log the JoinAuction event
+            console.log('JoinAuction event:', sender, auctionId, bidPrice, previousBidder);
+
+            // Prepare promises for Firestore updates
+            const auctionRef = db.collection('auctions').doc(auctionId.toString());
+            const auctionPromise = auctionRef.set({
+                lastBidder: sender,
+                previousBidder: previousBidder,
+                lastBid: bidPrice,
+            }, { merge: true });
+
+            const senderWalletRef = db.collection('wallets').doc(sender);
+            const senderBalancePromise = getBalance(sender).then(newSenderBalance => 
+                senderWalletRef.set({ balance: newSenderBalance }, { merge: true })
+            );
+
+            let previousBidderWalletPromise = Promise.resolve();
+            if (previousBidder !== '0x0000000000000000000000000000000000000000') {
+                const previousBidderWalletRef = db.collection('wallets').doc(previousBidder);
+                previousBidderWalletPromise = getBalance(previousBidder).then(previousBidderBalance => 
+                    previousBidderWalletRef.set({ balance: previousBidderBalance }, { merge: true })
+                );
+            }
+
+            // Wait for all updates to complete
+            await Promise.all([
+                auctionPromise,
+                senderBalancePromise,
+                previousBidderWalletPromise
+            ]);
+
+            console.log('All updates completed successfully');
+        } catch (error) {
+            console.error('Error handling JoinAuction event:', error);
+        }
     });
 }
 
+
 const startListeningToCancelAuctionEvent = () => {
     contractProvider.on('CancelAuction', async (sender, auctionId, tokenId, auctioneer, previousBidder) => {
-        // Sender is the auctioneer
+        console.log('CancelAuction event:', sender, auctionId, tokenId, auctioneer, previousBidder);
+
+        // Update the auction status to 'cancelled'
+        const auctionRef = db.collection('auctions').doc(auctionId.toString());
+        const auctionPromise = auctionRef.set({
+            completed: true,
+            active: false,
+        }, { merge: true });
+
+        // Update Wallet in Firestore
+        const newSenderBalance = await getBalance(sender);
+        const senderWalletRef = db.collection('wallets').doc(sender);
+        const senderWalletPromise = senderWalletRef.update({ 
+            balance: newSenderBalance 
+        }, {merge: true});
+
+        let previousBidderWalletPromise = Promise.resolve();
+        if (previousBidder !== '0x0000000000000000000000000000000000000000'){
+            const newPreviousBidderBalance = await getBalance(previousBidder);
+            const previousBidderWalletRef = db.collection('wallets').doc(previousBidder);
+            previousBidderWalletPromise = previousBidderWalletRef.update({ 
+                balance: newPreviousBidderBalance 
+            }, {merge: true});
+        }
+
+        // Wait for all updates to complete
+        await Promise.all([
+            auctionPromise, 
+            senderWalletPromise,
+            previousBidderWalletPromise,
+        ]);
     });
 }
 
@@ -163,6 +229,9 @@ const startListeningToFinishAuctionEvent = () => {
         // Auctioneer is the owner of the NFT
         
         // LastBidder is the winner
+
+        // Update  Wallet in Firestore
+        
     });
 }
 
