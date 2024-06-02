@@ -1,6 +1,20 @@
 const helper = require('./helper');
 const walletService = require('../services/WalletService');
 
+// Create Ether wallet
+async function createEtherWallet(req, res) {
+    try {
+        const wallet = await walletService.createEtherWallet();
+        return res.status(200).json(helper.APIReturn(0, {
+            "wallet": wallet
+        }, "Success!"));
+    } catch (error) {
+        console.log("Error: ", error);
+        return res.status(500).json(helper.APIReturn(101, "Something went wrong!"));
+    }
+
+}
+
 // Get wallet balance from Blockchain
 async function getBalance(req, res) {
     try {
@@ -43,6 +57,7 @@ async function createOrUpdateWallet(req, res) {
 }
 
 module.exports = { 
+    createEtherWallet,
     getBalance,
     getWallet,
     createOrUpdateWallet,
