@@ -222,16 +222,34 @@ const startListeningToCancelAuctionEvent = () => {
 
 const startListeningToFinishAuctionEvent = () => {
     contractProvider.on('FinishAuction', async (sender, auctionId, tokenId, bidPrice, auctioneer, lastBidder) => {
-        // Sender is who called the function
+        console.log('FinishAuction event:', sender, auctionId, tokenId, bidPrice, auctioneer, lastBidder);
+        // Update auction in Firestore
+        const auctionRef = db.collection('auctions').doc(auctionId.toString());
+        const auctionPromise = auctionRef.set({
+            completed: true,
+            active: false,
+        }, { merge: true });
         
-        // Update the auction status to 'finished'
-        
-        // Auctioneer is the owner of the NFT
-        
-        // LastBidder is the winner
-
         // Update  Wallet in Firestore
-        
+        // Sender, sender may the same
+        const newAuctioneerBalance = await getBalance(auctioneer);
+        const auctioneerWalletRef = db.collection('wallets').doc(auctioneer);
+        const auctioneerWalletPromise = auctioneerWalletRef.set({ 
+            balance: newAuctioneerBalance 
+        }, {merge: true});
+
+        // Update collection of NFTs
+        const nftRef = db.collection('nfts').doc(tokenId.toString());
+        const nftPromise = nftRef.set({ 
+            author: lastBidder
+        }, {merge: true});
+
+        // Wait for all updates to complete
+        await Promise.all([
+            auctionPromise,
+            auctioneerWalletPromise,
+            nftPromise,
+        ]);
     });
 }
 
