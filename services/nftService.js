@@ -115,6 +115,27 @@ async function getTopPriceNft() {
     }
 }
 
+async function getAllNftsOnAuction() {
+    try {
+        const nfts = await getAllNftsOnAuctionFromFirestore();
+        const promises = nfts.map(async nft => {
+            const tokenURL = await contractProvider.tokenURI(nft.tokenId);
+            const metadata = await axios.get(tokenURL);
+            return {
+                ...nft,
+                ...metadata.data,
+            };
+        });
+        const updatedNfts = await Promise.all(promises);
+        return updatedNfts;
+    }
+    catch (error) {
+        console.error(`Error getting all NFTs on auction: ${error}`);
+        throw error;
+    }
+
+}
+
 async function getAllNftsOnMarketplace() {
     try {
         const nfts = await getAllNftsFromFirestore();
@@ -233,22 +254,43 @@ async function getOwnedSellingNftsFromFirestore(ownerAddress) {
 
 async function getOwnedAuctionNftsFromFirestore(ownerAddress) {
     try {
-        const nftRef = db.collection('nfts')
-            .where('author', '==', ownerAddress)
-            .where('isSold', '==', false)
-            .where('isAuction', '==', true);
-        const nftDocs = await nftRef.get();
-        if (nftDocs.empty) {
+        const auctionRef = db.collection('auctions')
+            .where('auctioneer', '==', ownerAddress)
+            .where('completed', '==', false)
+            .where('active', '==', true);
+        const auctionDocs = await auctionRef.get();
+        if (auctionDocs.empty) {
             return [];
         }
-        const nfts = [];
-        nftDocs.forEach(doc => {
-            nfts.push(doc.data());
+        const auctions = [];
+        auctionDocs.forEach(doc => {
+            auctions.push(doc.data());
         });
-        nfts.sort((a, b) => a.tokenId - b.tokenId);
-        return nfts;
+        auctions.sort((a, b) => a.auctionId - b.auctionId);
+        return auctions;
     } catch (error) {
         console.error(`Error getting owned auction NFTs from Firestore: ${error}`);
+        throw error;
+    }
+}
+
+async function getAllNftsOnAuctionFromFirestore() {
+    try {
+        const auctionRef = db.collection('auctions')
+            .where('completed', '==', false)
+            .where('active', '==', true);
+        const auctionDocs = await auctionRef.get();
+        if (auctionDocs.empty) {
+            return [];
+        }
+        const auctions = [];
+        auctionDocs.forEach(doc => {
+            auctions.push(doc.data());
+        });
+        auctions.sort((a, b) => a.auctionId - b.auctionId);
+        return auctions;
+    } catch (error) {
+        console.error(`Error getting all NFTs on auction from Firestore: ${error}`);
         throw error;
     }
 }
@@ -315,6 +357,7 @@ module.exports = {
     getTopPriceNft,
     getNftMetadata,
     approveNftForMarketplace,
+    getAllNftsOnAuction,
     getAllNftsOnMarketplace,
     getOwnedNftsByAddress,
     getOwnedNftsSellingByAddress,
