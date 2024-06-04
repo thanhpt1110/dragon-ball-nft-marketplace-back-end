@@ -18,6 +18,7 @@ module.exports = function(app) {
     // NFT API
     app.get('/api/nft', nftController.getAllNftsOnMarketplace);
     app.get('/api/nft/topPrice', nftController.getTopPriceNft);
+    app.get('/api/nft/auction', nftController.getAllNftsOnAuction);
     app.get('/api/nft/owned/selling/:wallet_address', nftController.getOwnedNftsSellingByAddress);
     app.get('/api/nft/owned/auction/:wallet_address', nftController.getOwnedNftsAuctionByAddress);
     app.get('/api/nft/owned/:wallet_address', nftController.getOwnedNftsByAddress);
