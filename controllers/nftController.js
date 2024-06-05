@@ -29,6 +29,18 @@ async function getAllNftsOnMarketplace(req, res) {
     }
 }
 
+async function getAllNftsOnAuction(req, res) {
+    try {
+        const nfts = await nftService.getAllNftsOnAuction();
+        return res.status(200).json(helper.APIReturn(0, {
+            "nfts": nfts,
+        }, "Success!"));
+    } catch (error) {
+        console.log("Error: ", error);
+        return res.status(500).json(helper.APIReturn(101, "Something went wrong!"));
+    }
+}
+
 async function getOwnedNftsByAddress(req, res) {
     try {
         const walletAddress = req.params.wallet_address;
@@ -96,6 +108,7 @@ module.exports = {
     getNftMetadata,
     approveNftForMarketplace,
     getAllNftsOnMarketplace,
+    getAllNftsOnAuction,
     getOwnedNftsByAddress,
     getOwnedNftsSellingByAddress,
     getOwnedNftsAuctionByAddress,

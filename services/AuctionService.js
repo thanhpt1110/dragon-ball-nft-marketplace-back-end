@@ -121,12 +121,12 @@ const startListeningToCreateAuctionEvent = () => {
                 completed: false,
                 active: true,
                 auctionId: auctionId,
-            });
+            }, {merge: true});
 
             // Update Wallet in Firestore
             const newSenderBalance = await getBalance(sender);
             const senderWalletRef = db.collection('wallets').doc(sender);
-            const senderWalletPromise = senderWalletRef.update({ 
+            const senderWalletPromise = senderWalletRef.set({ 
                 balance: newSenderBalance 
             }, {merge: true});
 
@@ -198,7 +198,7 @@ const startListeningToCancelAuctionEvent = () => {
         // Update Wallet in Firestore
         const newSenderBalance = await getBalance(sender);
         const senderWalletRef = db.collection('wallets').doc(sender);
-        const senderWalletPromise = senderWalletRef.update({ 
+        const senderWalletPromise = senderWalletRef.set({ 
             balance: newSenderBalance 
         }, {merge: true});
 
@@ -206,7 +206,7 @@ const startListeningToCancelAuctionEvent = () => {
         if (previousBidder !== '0x0000000000000000000000000000000000000000'){
             const newPreviousBidderBalance = await getBalance(previousBidder);
             const previousBidderWalletRef = db.collection('wallets').doc(previousBidder);
-            previousBidderWalletPromise = previousBidderWalletRef.update({ 
+            previousBidderWalletPromise = previousBidderWalletRef.set({ 
                 balance: newPreviousBidderBalance 
             }, {merge: true});
         }
