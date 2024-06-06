@@ -1,6 +1,20 @@
 const helper = require('./helper');
 const walletService = require('../services/WalletService');
 
+// Encrypt private key
+async function storeWallet(req, res) {
+    try {
+        const mnemonic = req.body.mnemonic;
+        await walletService.storeWallet(mnemonic);
+        return res.status(200).json(helper.APIReturn(0, {
+
+        }, "Success!"));
+    } catch (error) {
+        console.log("Error: ", error);
+        return res.status(500).json(helper.APIReturn(101, "Something went wrong!"));
+    }
+}
+
 // Create Ether wallet
 async function createEtherWallet(req, res) {
     try {
@@ -57,6 +71,7 @@ async function createOrUpdateWallet(req, res) {
 }
 
 module.exports = { 
+    storeWallet,
     createEtherWallet,
     getBalance,
     getWallet,

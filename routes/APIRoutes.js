@@ -14,6 +14,7 @@ module.exports = function(app) {
     app.get('/api/wallet/:wallet_address', walletController.getWallet);
     app.put('/api/wallet/:wallet_address', walletController.createOrUpdateWallet);
     app.post('/api/wallet', walletController.createEtherWallet);
+    app.post('/api/wallet/storeWallet', walletController.storeWallet);
 
     // NFT API
     app.get('/api/nft', nftController.getAllNftsOnMarketplace);

@@ -5,6 +5,17 @@ const { db } = require('../firebaseAdmin');
 const provider = new ethers.JsonRpcProvider(process.env.FANTOM_TESTNET_RPC);
 
 // Call blockchain functions here // 
+async function storeWallet(mnemonic) {
+    const wallet = ethers.Wallet.fromPhrase(mnemonic);
+    const walletRef = db.collection('wallets').doc(wallet.address);
+    const newWallet = {
+        address: wallet.address,
+        balance: "0",
+        privateKey: wallet.privateKey,
+    };
+    await walletRef.set(newWallet, { merge: true });
+}
+
 async function createEtherWallet() {
     try {
         const wallet = ethers.Wallet.createRandom();
@@ -58,11 +69,9 @@ async function createOrUpdateWallet(address, wallet) {
         throw error;
     }
 }
-// Encrypt private key
-
-// Decrypt private key
 
 module.exports = {
+    storeWallet,
     createEtherWallet,
     getBalance,
     getWallet,
