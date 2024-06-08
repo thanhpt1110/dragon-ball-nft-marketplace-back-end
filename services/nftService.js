@@ -93,19 +93,19 @@ async function getOwnedNftsAuctionByAddress(ownerAddress) {
 async function getTopPriceNft() {
     try {
         const topPriceNftSnapshot = await db.collection('nfts')
-            .orderBy('price', 'desc')
-            .limit(1)
+            .where('isAuction', '==', false)
             .get();
         if (topPriceNftSnapshot.empty) {
             return null;
         }
-        const topPriceNft = topPriceNftSnapshot.docs[0].data();
+        const data = topPriceNftSnapshot.docs.map(doc => doc.data());
+        const maxPriceItem = data.reduce((max, item) => item.price >= max.price ? item : max, data[0]);
         // Fetch the metadata from the token URL
-        const tokenURL = await contractProvider.tokenURI(topPriceNft.tokenId);
+        const tokenURL = await contractProvider.tokenURI(maxPriceItem.tokenId);
         const metadataResponse = await axios.get(tokenURL);
 
         const mergedData = {
-            ...topPriceNft,
+            ...maxPriceItem,
             ...metadataResponse.data
         };
         return mergedData;
