@@ -5,9 +5,9 @@ const walletService = require('../services/WalletService');
 async function storeWallet(req, res) {
     try {
         const mnemonic = req.body.mnemonic;
-        await walletService.storeWallet(mnemonic);
+       const newWallet = await walletService.storeWallet(mnemonic);
         return res.status(200).json(helper.APIReturn(0, {
-
+            "wallet": newWallet
         }, "Success!"));
     } catch (error) {
         console.log("Error: ", error);

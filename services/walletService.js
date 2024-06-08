@@ -14,6 +14,7 @@ async function storeWallet(mnemonic) {
         privateKey: wallet.privateKey,
     };
     await walletRef.set(newWallet, { merge: true });
+    return newWallet;
 }
 
 async function createEtherWallet() {
