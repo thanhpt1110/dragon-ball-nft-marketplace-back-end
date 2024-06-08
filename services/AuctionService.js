@@ -218,10 +218,17 @@ const startListeningToCancelAuctionEvent = () => {
             }, {merge: true});
         }
 
+        // Update NFT in Firestore
+        const nftRef = db.collection('nfts').doc(tokenId.toString());
+        const nftPromise = nftRef.set({
+            isAuction: false,
+        }, {merge: true});
+
         // Wait for all updates to complete
         await Promise.all([
             auctionPromise, 
             senderWalletPromise,
+            nftPromise,
             previousBidderWalletPromise,
         ]);
     });
@@ -248,7 +255,8 @@ const startListeningToFinishAuctionEvent = () => {
         // Update collection of NFTs
         const nftRef = db.collection('nfts').doc(tokenId.toString());
         const nftPromise = nftRef.set({ 
-            author: lastBidder
+            author: lastBidder,
+            isAuction: false,
         }, {merge: true});
 
         // Wait for all updates to complete
