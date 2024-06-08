@@ -123,6 +123,12 @@ const startListeningToCreateAuctionEvent = () => {
                 auctionId: auctionId,
             }, {merge: true});
 
+            // Update NFT in Firestore
+            const nftRef = db.collection('nfts').doc(tokenId.toString());
+            const nftPromise = nftRef.set({
+                isAuction: true,
+            }, {merge: true});
+
             // Update Wallet in Firestore
             const newSenderBalance = await getBalance(sender);
             const senderWalletRef = db.collection('wallets').doc(sender);
@@ -133,6 +139,7 @@ const startListeningToCreateAuctionEvent = () => {
             // Wait for all updates to complete
             await Promise.all([
                 auctionPromise, 
+                nftPromise,
                 senderWalletPromise
             ]);
         } catch (error) {
