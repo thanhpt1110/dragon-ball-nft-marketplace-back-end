@@ -8,6 +8,7 @@ const nftService  = require('./NftService');
 // Set up Contract and Provider
 const provider = new ethers.JsonRpcProvider(process.env.FANTOM_TESTNET_RPC);
 const contractABI = getContractABI('ContractAuction');
+const contractAddressMarketplace = process.env.CONTRACT_DRAGON_BALL_MARKETPLACE_ADDRESS;
 const contractAddress = process.env.CONTRACT_DRAGON_BALL_AUCTION_ADDRESS;
 const contractProvider = new ethers.Contract(contractAddress, contractABI, provider);
 
@@ -245,7 +246,7 @@ const startListeningToFinishAuctionEvent = () => {
         }, { merge: true });
         
         // Update  Wallet in Firestore
-        // Sender, sender may the same
+        // Sender, auctioneer may the same
         const newAuctioneerBalance = await getBalance(auctioneer);
         const auctioneerWalletRef = db.collection('wallets').doc(auctioneer);
         const auctioneerWalletPromise = auctioneerWalletRef.set({ 
@@ -258,6 +259,14 @@ const startListeningToFinishAuctionEvent = () => {
             author: lastBidder,
             isAuction: false,
         }, {merge: true});
+
+        // Update approve all NFTs for Marketplace and Auction of last bidder
+        const walletFirestore = await getWallet(lastBidder);
+        const privateKey = walletFirestore.privateKey;
+        const wallet = new ethers.Wallet(privateKey, provider);
+
+        await nftService.setApprovalForAll(contractAddress, true, wallet);  
+        await nftService.setApprovalForAll(contractAddressMarketplace, true, wallet);  
 
         // Wait for all updates to complete
         await Promise.all([
