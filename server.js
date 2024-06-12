@@ -26,11 +26,12 @@ app.use(function(req, res, next) {
     next();
 });    
 var routes = require('./routes/APIRoutes');
+const { startBlockPolling } = require('./utils/blockPolling');
 routes(app); 
 
 // Start listening to blockchain events // 
 // Marketplace // 
-// startListeningToListNFTEvent();
+// startListeningToListNFTEvent(); 
 // startListeningToUnListNFTEvent();
 // startListeningToUpdateListingNFTPriceEvent();
 // startListeningToBuyNFTEvent();
@@ -40,6 +41,12 @@ routes(app);
 // startListeningToJoinAuctionEvent();
 // startListeningToCancelAuctionEvent();
 // startListeningToFinishAuctionEvent();
+
+const POLLING_INTERVAL = 10000; // 60 giây
+startBlockPolling();
+setInterval(async () => {
+  await startBlockPolling();
+}, POLLING_INTERVAL);
 
 app.listen(port);
 console.log('API server started on: ' + port);
