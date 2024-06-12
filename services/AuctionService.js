@@ -3,7 +3,7 @@ const { getContractABI } = require('../utils/getContractABI');
 const { getWallet, getBalance } = require('./WalletService');
 const { db } = require('../firebaseAdmin');
 const { default: PQueue } = require('p-queue');
-const nftService  = require('./NftService'); 
+const nftService = require('./NftService');
 
 // Set up Contract and Provider
 const provider = new ethers.JsonRpcProvider(process.env.FANTOM_TESTNET_RPC);
@@ -21,271 +21,278 @@ const queue = new PQueue({ concurrency: 1 });
 // const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
 
 async function createAuction(sender, tokenId, initialPrice, startTime, endTime) {
-    await queue.add(async () => {
-        try {
-            const walletFirestore = await getWallet(sender);
-            const privateKey = walletFirestore.privateKey;
-            const wallet = new ethers.Wallet(privateKey, provider);
-            const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
-            
-            // Convert initialPrice to Wei: 1 Ether = 10^18 Wei
-            const priceInWei = ethers.parseEther(initialPrice.toString());
+  await queue.add(async () => {
+    try {
+      const walletFirestore = await getWallet(sender);
+      const privateKey = walletFirestore.privateKey;
+      const wallet = new ethers.Wallet(privateKey, provider);
+      const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
 
-            const tx = await contractWithSigner.createAuction(tokenId, priceInWei, startTime, endTime);
-            await tx.wait();
-            console.log('Đã tạo auction với Token:', tokenId);
-        } catch (error) {
-            console.log("Lỗi khi tạo Auction: ", error);
-            throw error;
-        }
-    });
-}   
+      // Convert initialPrice to Wei: 1 Ether = 10^18 Wei
+      const priceInWei = ethers.parseEther(initialPrice.toString());
+
+      const tx = await contractWithSigner.createAuction(tokenId, priceInWei, startTime, endTime);
+      await tx.wait();
+      console.log('Đã tạo auction với Token:', tokenId);
+    } catch (error) {
+      console.log("Lỗi khi tạo Auction: ", error);
+      throw error;
+    }
+  });
+}
 
 async function joinAuction(sender, auctionId, bidPrice) {
-    await queue.add(async () => {
-        try {
-            const walletFirestore = await getWallet(sender);
-            const privateKey = walletFirestore.privateKey;
-            const wallet = new ethers.Wallet(privateKey, provider);
-            const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
-            
-            const priceInWei = ethers.parseEther(bidPrice.toString());
-            const options = { value: priceInWei };
+  await queue.add(async () => {
+    try {
+      const walletFirestore = await getWallet(sender);
+      const privateKey = walletFirestore.privateKey;
+      const wallet = new ethers.Wallet(privateKey, provider);
+      const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
 
-            const tx = await contractWithSigner.joinAuction(auctionId, options);
-            await tx.wait();
-            console.log('Đã tham gia vào Auction:', auctionId);
-        } catch (error) {
-            console.log("Lỗi khi tham gia Auction: ", error);
-            throw error;
-        }
-    });
+      const priceInWei = ethers.parseEther(bidPrice.toString());
+      const options = { value: priceInWei };
+
+      const tx = await contractWithSigner.joinAuction(auctionId, options);
+      await tx.wait();
+      console.log('Đã tham gia vào Auction:', auctionId);
+    } catch (error) {
+      console.log("Lỗi khi tham gia Auction: ", error);
+      throw error;
+    }
+  });
 }
 
 async function cancelAuction(sender, auctionId) {
-    await queue.add(async () => {
-        try {
-            const walletFirestore = await getWallet(sender);
-            const privateKey = walletFirestore.privateKey;
-            const wallet = new ethers.Wallet(privateKey, provider);
-            const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
-            
-            const tx = await contractWithSigner.cancelAuction(auctionId);
-            await tx.wait();
+  await queue.add(async () => {
+    try {
+      const walletFirestore = await getWallet(sender);
+      const privateKey = walletFirestore.privateKey;
+      const wallet = new ethers.Wallet(privateKey, provider);
+      const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
 
-            console.log('Đã hủy Auction:', auctionId);
-        } catch (error) {
-            console.log("Lỗi khi hủy Auction: ", error);
-            throw error;
-        }
-    });
+      const tx = await contractWithSigner.cancelAuction(auctionId);
+      await tx.wait();
+
+      console.log('Đã hủy Auction:', auctionId);
+    } catch (error) {
+      console.log("Lỗi khi hủy Auction: ", error);
+      throw error;
+    }
+  });
 }
 
 async function finishAuction(sender, auctionId) {
-    await queue.add(async () => {
-        try {
-            const walletFirestore = await getWallet(sender);
-            const privateKey = walletFirestore.privateKey;
-            const wallet = new ethers.Wallet(privateKey, provider);
-            const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
-            
-            const tx = await contractWithSigner.finishAuction(auctionId);
-            await tx.wait();
+  await queue.add(async () => {
+    try {
+      const walletFirestore = await getWallet(sender);
+      const privateKey = walletFirestore.privateKey;
+      const wallet = new ethers.Wallet(privateKey, provider);
+      const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet);
 
-            console.log('Đã kết thúc Auction:', auctionId);
-        } catch (error) {
-            console.log("Lỗi khi kết thúc Auction: ", error);
-            throw error;
-        }
-    });
+      const tx = await contractWithSigner.finishAuction(auctionId);
+      await tx.wait();
+
+      console.log('Đã kết thúc Auction:', auctionId);
+    } catch (error) {
+      console.log("Lỗi khi kết thúc Auction: ", error);
+      throw error;
+    }
+  });
 }
 
 //// ================================ ////
 
 // Listener on blockchain events to update the database
-const startListeningToCreateAuctionEvent = () => {
-    contractProvider.on('CreateAuction', async (sender, auctionId, tokenId, initialPrice, startTime, endTime) => {
-        try {
-            console.log('CreateAuction event:', sender, auctionId, tokenId, initialPrice, startTime, endTime);
-            
-            // Create a new auction in Firestore
-            const auctionRef = db.collection('auctions').doc(auctionId.toString());
-            const auctionPromise = auctionRef.set({
-                auctioneer: sender,
-                tokenId: tokenId,
-                initialPrice: initialPrice,
-                previousBidder: '',
-                lastBid: initialPrice,
-                lastBidder: '',
-                startTime: startTime,
-                endTime: endTime,
-                completed: false,
-                active: true,
-                auctionId: auctionId,
-            }, {merge: true});
+const handleCreateAuctionEvent = async (event) => {
+  try {
+    const [sender, auctionId, tokenId, initialPrice, startTime, endTime] = event.args;
+    console.log('CreateAuction event:', sender, auctionId, tokenId, initialPrice, startTime, endTime);
 
-            // Update NFT in Firestore
-            const nftRef = db.collection('nfts').doc(tokenId.toString());
-            const nftPromise = nftRef.set({
-                isAuction: true,
-            }, {merge: true});
+    // Create a new auction in Firestore
+    const auctionRef = db.collection('auctions').doc(auctionId.toString());
+    const auctionPromise = auctionRef.set({
+      auctioneer: sender,
+      tokenId: tokenId,
+      initialPrice: initialPrice,
+      previousBidder: '',
+      lastBid: initialPrice,
+      lastBidder: '',
+      startTime: startTime,
+      endTime: endTime,
+      completed: false,
+      active: true,
+      auctionId: auctionId,
+    }, { merge: true });
 
-            // Update Wallet in Firestore
-            const newSenderBalance = await getBalance(sender);
-            const senderWalletRef = db.collection('wallets').doc(sender);
-            const senderWalletPromise = senderWalletRef.set({ 
-                balance: newSenderBalance 
-            }, {merge: true});
+    // Update NFT in Firestore
+    const nftRef = db.collection('nfts').doc(tokenId.toString());
+    const nftPromise = nftRef.set({
+      isAuction: true,
+    }, { merge: true });
 
-            // Wait for all updates to complete
-            await Promise.all([
-                auctionPromise, 
-                nftPromise,
-                senderWalletPromise
-            ]);
-        } catch (error) {
-            console.log("Lỗi khi tạo Auction: ", error);
-            throw error;
-        }
-    });
+    // Update Wallet in Firestore
+    const newSenderBalance = await getBalance(sender);
+    const senderWalletRef = db.collection('wallets').doc(sender);
+    const senderWalletPromise = senderWalletRef.set({
+      balance: newSenderBalance
+    }, { merge: true });
+
+    // Wait for all updates to complete
+    await Promise.all([
+      auctionPromise,
+      nftPromise,
+      senderWalletPromise
+    ]);
+  } catch (error) {
+    console.error('Error when handling create auction event:', error);
+    throw error;
+  }
+};
+
+const handleJoinAuctionEvent = async (event) => {
+  try {
+    const [sender, auctionId, bidPrice, previousBidder] = event.args;
+    // Log the JoinAuction event
+    console.log('JoinAuction event:', sender, auctionId, bidPrice, previousBidder);
+
+    // Prepare promises for Firestore updates
+    const auctionRef = db.collection('auctions').doc(auctionId.toString());
+    const auctionPromise = auctionRef.set({
+      lastBidder: sender,
+      previousBidder: previousBidder,
+      lastBid: bidPrice,
+    }, { merge: true });
+
+    const senderWalletRef = db.collection('wallets').doc(sender);
+    const senderBalancePromise = getBalance(sender).then(newSenderBalance =>
+      senderWalletRef.set({ balance: newSenderBalance }, { merge: true })
+    );
+
+    let previousBidderWalletPromise = Promise.resolve();
+    if (previousBidder !== '0x0000000000000000000000000000000000000000') {
+      const previousBidderWalletRef = db.collection('wallets').doc(previousBidder);
+      previousBidderWalletPromise = getBalance(previousBidder).then(previousBidderBalance =>
+        previousBidderWalletRef.set({ balance: previousBidderBalance }, { merge: true })
+      );
+    }
+
+    // Wait for all updates to complete
+    await Promise.all([
+      auctionPromise,
+      senderBalancePromise,
+      previousBidderWalletPromise
+    ]);
+
+    console.log('All updates completed successfully');
+  } catch (error) {
+    console.error('Error when handling join auction event:', error);
+    throw error;
+  }
 }
 
-const startListeningToJoinAuctionEvent = () => {
-    contractProvider.on('JoinAuction', async (sender, auctionId, bidPrice, previousBidder) => {
-        try {
-            // Log the JoinAuction event
-            console.log('JoinAuction event:', sender, auctionId, bidPrice, previousBidder);
+const handleCancelAuctionEvent = async (event) => {
+  try {
+    const [sender, auctionId, tokenId, auctioneer, previousBidder] = event.args;
+    console.log('CancelAuction event:', sender, auctionId, tokenId, auctioneer, previousBidder);
 
-            // Prepare promises for Firestore updates
-            const auctionRef = db.collection('auctions').doc(auctionId.toString());
-            const auctionPromise = auctionRef.set({
-                lastBidder: sender,
-                previousBidder: previousBidder,
-                lastBid: bidPrice,
-            }, { merge: true });
+    // Update the auction status to 'cancelled'
+    const auctionRef = db.collection('auctions').doc(auctionId.toString());
+    const auctionPromise = auctionRef.set({
+      completed: true,
+      active: false,
+    }, { merge: true });
 
-            const senderWalletRef = db.collection('wallets').doc(sender);
-            const senderBalancePromise = getBalance(sender).then(newSenderBalance => 
-                senderWalletRef.set({ balance: newSenderBalance }, { merge: true })
-            );
+    // Update Wallet in Firestore
+    const newSenderBalance = await getBalance(sender);
+    const senderWalletRef = db.collection('wallets').doc(sender);
+    const senderWalletPromise = senderWalletRef.set({
+      balance: newSenderBalance
+    }, { merge: true });
 
-            let previousBidderWalletPromise = Promise.resolve();
-            if (previousBidder !== '0x0000000000000000000000000000000000000000') {
-                const previousBidderWalletRef = db.collection('wallets').doc(previousBidder);
-                previousBidderWalletPromise = getBalance(previousBidder).then(previousBidderBalance => 
-                    previousBidderWalletRef.set({ balance: previousBidderBalance }, { merge: true })
-                );
-            }
+    let previousBidderWalletPromise = Promise.resolve();
+    if (previousBidder !== '0x0000000000000000000000000000000000000000') {
+      const newPreviousBidderBalance = await getBalance(previousBidder);
+      const previousBidderWalletRef = db.collection('wallets').doc(previousBidder);
+      previousBidderWalletPromise = previousBidderWalletRef.set({
+        balance: newPreviousBidderBalance
+      }, { merge: true });
+    }
 
-            // Wait for all updates to complete
-            await Promise.all([
-                auctionPromise,
-                senderBalancePromise,
-                previousBidderWalletPromise
-            ]);
+    // Update NFT in Firestore
+    const nftRef = db.collection('nfts').doc(tokenId.toString());
+    const nftPromise = nftRef.set({
+      isAuction: false,
+    }, { merge: true });
 
-            console.log('All updates completed successfully');
-        } catch (error) {
-            console.error('Error handling JoinAuction event:', error);
-        }
-    });
+    // Wait for all updates to complete
+    await Promise.all([
+      auctionPromise,
+      senderWalletPromise,
+      nftPromise,
+      previousBidderWalletPromise,
+    ]);
+  }
+  catch (error) {
+    console.error('Error when handling cancel auction event:', error);
+    throw error;
+  }
 }
 
+const handleFinishAuctionEvent = async (event) => {
+  try {
+    const [sender, auctionId, tokenId, bidPrice, auctioneer, lastBidder] = event.args;
+    console.log('FinishAuction event:', sender, auctionId, tokenId, bidPrice, auctioneer, lastBidder);
+    // Update auction in Firestore
+    const auctionRef = db.collection('auctions').doc(auctionId.toString());
+    const auctionPromise = auctionRef.set({
+      completed: true,
+      active: false,
+    }, { merge: true });
 
-const startListeningToCancelAuctionEvent = () => {
-    contractProvider.on('CancelAuction', async (sender, auctionId, tokenId, auctioneer, previousBidder) => {
-        console.log('CancelAuction event:', sender, auctionId, tokenId, auctioneer, previousBidder);
+    // Update  Wallet in Firestore
+    // Sender, auctioneer may the same
+    const newAuctioneerBalance = await getBalance(auctioneer);
+    const auctioneerWalletRef = db.collection('wallets').doc(auctioneer);
+    const auctioneerWalletPromise = auctioneerWalletRef.set({
+      balance: newAuctioneerBalance
+    }, { merge: true });
 
-        // Update the auction status to 'cancelled'
-        const auctionRef = db.collection('auctions').doc(auctionId.toString());
-        const auctionPromise = auctionRef.set({
-            completed: true,
-            active: false,
-        }, { merge: true });
+    // Update collection of NFTs
+    const nftRef = db.collection('nfts').doc(tokenId.toString());
+    const nftPromise = nftRef.set({
+      author: lastBidder,
+      isAuction: false,
+    }, { merge: true });
 
-        // Update Wallet in Firestore
-        const newSenderBalance = await getBalance(sender);
-        const senderWalletRef = db.collection('wallets').doc(sender);
-        const senderWalletPromise = senderWalletRef.set({ 
-            balance: newSenderBalance 
-        }, {merge: true});
+    // Update approve all NFTs for Marketplace and Auction of last bidder
+    const walletFirestore = await getWallet(lastBidder);
+    const privateKey = walletFirestore.privateKey;
+    const wallet = new ethers.Wallet(privateKey, provider);
 
-        let previousBidderWalletPromise = Promise.resolve();
-        if (previousBidder !== '0x0000000000000000000000000000000000000000'){
-            const newPreviousBidderBalance = await getBalance(previousBidder);
-            const previousBidderWalletRef = db.collection('wallets').doc(previousBidder);
-            previousBidderWalletPromise = previousBidderWalletRef.set({ 
-                balance: newPreviousBidderBalance 
-            }, {merge: true});
-        }
+    await nftService.setApprovalForAll(contractAddress, true, wallet);
+    await nftService.setApprovalForAll(contractAddressMarketplace, true, wallet);
 
-        // Update NFT in Firestore
-        const nftRef = db.collection('nfts').doc(tokenId.toString());
-        const nftPromise = nftRef.set({
-            isAuction: false,
-        }, {merge: true});
-
-        // Wait for all updates to complete
-        await Promise.all([
-            auctionPromise, 
-            senderWalletPromise,
-            nftPromise,
-            previousBidderWalletPromise,
-        ]);
-    });
-}
-
-const startListeningToFinishAuctionEvent = () => {
-    contractProvider.on('FinishAuction', async (sender, auctionId, tokenId, bidPrice, auctioneer, lastBidder) => {
-        console.log('FinishAuction event:', sender, auctionId, tokenId, bidPrice, auctioneer, lastBidder);
-        // Update auction in Firestore
-        const auctionRef = db.collection('auctions').doc(auctionId.toString());
-        const auctionPromise = auctionRef.set({
-            completed: true,
-            active: false,
-        }, { merge: true });
-        
-        // Update  Wallet in Firestore
-        // Sender, auctioneer may the same
-        const newAuctioneerBalance = await getBalance(auctioneer);
-        const auctioneerWalletRef = db.collection('wallets').doc(auctioneer);
-        const auctioneerWalletPromise = auctioneerWalletRef.set({ 
-            balance: newAuctioneerBalance 
-        }, {merge: true});
-
-        // Update collection of NFTs
-        const nftRef = db.collection('nfts').doc(tokenId.toString());
-        const nftPromise = nftRef.set({ 
-            author: lastBidder,
-            isAuction: false,
-        }, {merge: true});
-
-        // Update approve all NFTs for Marketplace and Auction of last bidder
-        const walletFirestore = await getWallet(lastBidder);
-        const privateKey = walletFirestore.privateKey;
-        const wallet = new ethers.Wallet(privateKey, provider);
-
-        await nftService.setApprovalForAll(contractAddress, true, wallet);  
-        await nftService.setApprovalForAll(contractAddressMarketplace, true, wallet);  
-
-        // Wait for all updates to complete
-        await Promise.all([
-            auctionPromise,
-            auctioneerWalletPromise,
-            nftPromise,
-        ]);
-    });
+    // Wait for all updates to complete
+    await Promise.all([
+      auctionPromise,
+      auctioneerWalletPromise,
+      nftPromise,
+    ]);
+  } catch (error) {
+    console.error('Error when handling finish auction event:', error);
+    throw error;
+  }
 }
 
 module.exports = {
-    createAuction,
-    joinAuction,
-    cancelAuction,
-    finishAuction,
+  createAuction,
+  joinAuction,
+  cancelAuction,
+  finishAuction,
 
-    // Listener
-    startListeningToCreateAuctionEvent,
-    startListeningToJoinAuctionEvent,
-    startListeningToCancelAuctionEvent,
-    startListeningToFinishAuctionEvent,
+  // handle realtime
+  handleCreateAuctionEvent,
+  handleJoinAuctionEvent,
+  handleCancelAuctionEvent,
+  handleFinishAuctionEvent,
 }

@@ -226,10 +226,4 @@ module.exports = {
   handleUnListNFTEvent,
   handleUpdateListingNFTPriceEvent,
   handleBuyNFTEvent,
-
-  // Listener
-  // startListeningToListNFTEvent,
-  // startListeningToUnListNFTEvent,
-  // startListeningToUpdateListingNFTPriceEvent,
-  // startListeningToBuyNFTEvent,
 }

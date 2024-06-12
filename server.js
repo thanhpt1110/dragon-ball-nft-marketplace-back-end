@@ -42,7 +42,7 @@ routes(app);
 // startListeningToCancelAuctionEvent();
 // startListeningToFinishAuctionEvent();
 
-const POLLING_INTERVAL = 10000; // 60 giây
+const POLLING_INTERVAL = 10000; // 300 giây
 startBlockPolling();
 setInterval(async () => {
   await startBlockPolling();

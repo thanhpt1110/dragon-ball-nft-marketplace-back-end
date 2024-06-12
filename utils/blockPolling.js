@@ -10,10 +10,10 @@ const {
 } = require('../services/MarketplaceService');
 
 const {
-    startListeningToCreateAuctionEvent,
-    startListeningToJoinAuctionEvent,
-    startListeningToCancelAuctionEvent,
-    startListeningToFinishAuctionEvent,
+    handleCreateAuctionEvent,
+    handleJoinAuctionEvent,
+    handleCancelAuctionEvent,
+    handleFinishAuctionEvent,
 } = require('../services/AuctionService');
 
 const getLastProcessedBlock = async () => {
@@ -79,7 +79,7 @@ const processBlockEvents = async (blockNumber) => {
           console.log('Buy NFT event:', event);
           await handleBuyNFTEvent(event);
         } else {
-          console.log(`Unhandled marketplace event: ${event.event}`, event);
+          console.log(`Unhandled marketplace event: ${event.fragment.name}`, event);
         }
       } catch (error) {
         console.error('Error processing marketplace event:', event, error);
@@ -88,20 +88,20 @@ const processBlockEvents = async (blockNumber) => {
 
     for (const event of allAuctionEvents) {
       try {
-        if (event.event === 'CreateAuction') {
+        if (event.fragment.name === 'CreateAuction') {
           console.log('Create Auction event:', event);
-          // Thêm xử lý sự kiện CreateAuction ở đây
-        } else if (event.event === 'JoinAuction') {
+          await handleCreateAuctionEvent(event);
+        } else if (event.fragment.name === 'JoinAuction') {
           console.log('Join Auction event:', event);
-          // Thêm xử lý sự kiện JoinAuction ở đây
-        } else if (event.event === 'CancelAuction') {
+          await handleJoinAuctionEvent(event);
+        } else if (event.fragment.name === 'CancelAuction') {
           console.log('Cancel Auction event:', event);
-          // Thêm xử lý sự kiện CancelAuction ở đây
-        } else if (event.event === 'FinishAuction') {
+          await handleCancelAuctionEvent(event);
+        } else if (event.fragment.name === 'FinishAuction') {
           console.log('Finish Auction event:', event);
-          // Thêm xử lý sự kiện FinishAuction ở đây
+          await handleFinishAuctionEvent(event);
         } else {
-          console.log(`Unhandled auction event: ${event.event}`, event);
+          console.log(`Unhandled auction event: ${event.fragment.name}`, event);
         }
       } catch (error) {
         console.error('Error processing auction event:', event, error);
