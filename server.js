@@ -29,20 +29,7 @@ var routes = require('./routes/APIRoutes');
 const { startBlockPolling } = require('./utils/blockPolling');
 routes(app); 
 
-// Start listening to blockchain events // 
-// Marketplace // 
-// startListeningToListNFTEvent(); 
-// startListeningToUnListNFTEvent();
-// startListeningToUpdateListingNFTPriceEvent();
-// startListeningToBuyNFTEvent();
-
-// Auction
-// startListeningToCreateAuctionEvent();
-// startListeningToJoinAuctionEvent();
-// startListeningToCancelAuctionEvent();
-// startListeningToFinishAuctionEvent();
-
-const POLLING_INTERVAL = 10000; // 300 giây
+const POLLING_INTERVAL = 1000000; // 10 giây
 startBlockPolling();
 setInterval(async () => {
   await startBlockPolling();

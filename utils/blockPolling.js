@@ -2,7 +2,7 @@ const { ethers } = require("ethers")
 const { db } = require("../firebaseAdmin")
 const { getContractABI } = require("./getContractABI")
 require('dotenv').config();
-const { 
+const {
   handleListNFTEvent,
   handleUnListNFTEvent,
   handleUpdateListingNFTPriceEvent,
@@ -10,15 +10,15 @@ const {
 } = require('../services/MarketplaceService');
 
 const {
-    handleCreateAuctionEvent,
-    handleJoinAuctionEvent,
-    handleCancelAuctionEvent,
-    handleFinishAuctionEvent,
+  handleCreateAuctionEvent,
+  handleJoinAuctionEvent,
+  handleCancelAuctionEvent,
+  handleFinishAuctionEvent,
 } = require('../services/AuctionService');
 
 const getLastProcessedBlock = async () => {
   const doc = await db.collection('block').doc('lastProcessedBlock').get()
-  return doc.exists ? doc.data().lastProcessedBlock : null  
+  return doc.exists ? doc.data().lastProcessedBlock : null
 }
 
 const updateLastProcessedBlock = async (blockNumber) => {
@@ -30,7 +30,7 @@ const startBlockPolling = async () => {
   const latestBlock = await provider.getBlockNumber();
   const lastProcessedBlock = await getLastProcessedBlock() || latestBlock;
 
-  console.log('Latest block:', latestBlock)  
+  console.log('Latest block:', latestBlock)
   for (let block = lastProcessedBlock + 1; block <= latestBlock; block++) {
     await processBlockEvents(block);
   }
@@ -44,15 +44,38 @@ const marketplaceContract = new ethers.Contract(process.env.CONTRACT_DRAGON_BALL
 const contractAuctionABI = getContractABI('ContractAuction');
 const auctionContract = new ethers.Contract(process.env.CONTRACT_DRAGON_BALL_AUCTION_ADDRESS, contractAuctionABI, provider);
 
+const MarketplaceEventName = {
+  ListNFT: 'ListNFT',
+  UnListNFT: 'UnListNFT',
+  UpdateListingNFTPrice: 'UpdateListingNFTPrice',
+  BuyNFT: 'BuyNFT',
+};
+
+const AuctionEventName = {
+  CreateAuction: 'CreateAuction',
+  JoinAuction: 'JoinAuction',
+  CancelAuction: 'CancelAuction',
+  FinishAuction: 'FinishAuction',
+};
+
 const processBlockEvents = async (blockNumber) => {
   try {
-    const eventNames = ['ListNFT', 'UnListNFT', 'UpdateListingNFTPrice', 'BuyNFT'];
-    const marketplaceEventPromises = eventNames.map(eventName => 
+    const eventNames = [
+      MarketplaceEventName.ListNFT,
+      MarketplaceEventName.UnListNFT,
+      MarketplaceEventName.UpdateListingNFTPrice,
+      MarketplaceEventName.BuyNFT];
+    const marketplaceEventPromises = eventNames.map(eventName =>
       marketplaceContract.queryFilter([`${eventName}`], blockNumber, blockNumber)
     );
 
-    const auctionEventNames = ['CreateAuction', 'JoinAuction', 'CancelAuction', 'FinishAuction'];
-    const auctionEventPromises = auctionEventNames.map(eventName => 
+    const auctionEventNames = [
+      AuctionEventName.CreateAuction,
+      AuctionEventName.JoinAuction,
+      AuctionEventName.CancelAuction,
+      AuctionEventName.FinishAuction,
+    ];
+    const auctionEventPromises = auctionEventNames.map(eventName =>
       auctionContract.queryFilter([`${eventName}`], blockNumber, blockNumber)
     );
 
