@@ -29,7 +29,7 @@ var routes = require('./routes/APIRoutes');
 const { startBlockPolling } = require('./utils/blockPolling');
 routes(app); 
 
-const POLLING_INTERVAL = 1000000; // 10 giây
+const POLLING_INTERVAL = 1000000; // Đơn vị là milisecond
 startBlockPolling();
 setInterval(async () => {
   await startBlockPolling();

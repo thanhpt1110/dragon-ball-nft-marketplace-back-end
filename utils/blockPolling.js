@@ -35,6 +35,7 @@ const startBlockPolling = async () => {
     await processBlockEvents(block);
   }
 
+  console.log('Finished processing events for blocks:', lastProcessedBlock + 1, 'to', latestBlock)
   await updateLastProcessedBlock(latestBlock);
 };
 
